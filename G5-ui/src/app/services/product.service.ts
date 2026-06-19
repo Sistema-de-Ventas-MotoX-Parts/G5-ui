@@ -1,4 +1,6 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { Product } from '../models/products';
 
 @Injectable({
@@ -6,26 +8,25 @@ import { Product } from '../models/products';
 })
 export class ProductService {
 
-  products: Product[] = [
-    {
-      id: 1,
-      nombre: 'Casco Integral',
-      precio: 150000,
-      stock: 10
-    }
-  ];
+  private apiUrl = 'http://localhost:8080/api/productos';
 
-  getProducts() {
-    return this.products;
+  constructor(private http: HttpClient) {}
+
+
+  getProducts(): Observable<Product[]> {
+
+    return this.http.get<Product[]>(this.apiUrl);
+
   }
 
-  addProduct(product: Product) {
-    this.products.push(product);
-  }
 
-  deleteProduct(id: number) {
-    this.products = this.products.filter(
-      p => p.id !== id
+  createProduct(product: Product): Observable<Product> {
+
+    return this.http.post<Product>(
+      this.apiUrl,
+      product
     );
+
   }
+
 }
