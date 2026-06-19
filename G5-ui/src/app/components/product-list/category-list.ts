@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
@@ -216,7 +216,7 @@ import { CategoryService } from '../../services/category.service';
   template: `
 
     <!-- Modal -->
-    <div class="modal-overlay" *ngIf="modalAbierto" (click)="cerrarOverlay($event)">
+    <div class="modal-overlay" *ngIf="modalAbierto()" (click)="cerrarOverlay($event)">
       <div class="modal-card">
         <div class="modal-header">
           <h3>{{ editando ? 'Editar categoría' : 'Nueva categoría' }}</h3>
@@ -242,7 +242,7 @@ import { CategoryService } from '../../services/category.service';
         <button class="btn-primary" (click)="abrirModalNuevaCategoria()">+ Nueva categoría</button>
       </div>
 
-      <div *ngIf="categorias && categorias.length > 0; else noData" class="table-wrapper">
+      <div *ngIf="categorias().length > 0; else noData" class="table-wrapper">
         <table>
           <thead>
             <tr>
@@ -252,7 +252,7 @@ import { CategoryService } from '../../services/category.service';
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let c of categorias">
+            <tr *ngFor="let c of categorias()">
               <td><span class="id-badge">#{{c.id}}</span></td>
               <td>{{c.nombre}}</td>
               <td class="actions-cell">
@@ -276,8 +276,8 @@ import { CategoryService } from '../../services/category.service';
 })
 export class CategoryListComponent implements OnInit {
 
-  categorias: Category[] = [];
-  modalAbierto = false;
+  categorias = signal<Category[]>([]);
+  modalAbierto = signal(false);
   editando = false;
   categoriaEditandoId?: number;
 
@@ -290,7 +290,7 @@ export class CategoryListComponent implements OnInit {
   }
 
   abrirModalNuevaCategoria() {
-    this.modalAbierto = true;
+    this.modalAbierto.set(true);
     this.editando = false;
     this.categoriaEditandoId = undefined;
     this.nueva = { nombre: '' };
@@ -303,7 +303,7 @@ export class CategoryListComponent implements OnInit {
   }
 
   cerrarModal() {
-    this.modalAbierto = false;
+    this.modalAbierto.set(false);
     this.editando = false;
     this.categoriaEditandoId = undefined;
     this.nueva = { nombre: '' };
@@ -311,7 +311,7 @@ export class CategoryListComponent implements OnInit {
 
   cargar() {
     this.service.getCategories().subscribe({
-      next: data => { this.categorias = data; }
+      next: data => { this.categorias.set(data); }
     });
   }
 
@@ -324,7 +324,7 @@ export class CategoryListComponent implements OnInit {
     if (this.editando && this.categoriaEditandoId != null) {
       this.service.updateCategory(this.categoriaEditandoId, this.nueva).subscribe({
         next: (categoria) => {
-          this.categorias = this.categorias.map(c => c.id === categoria.id ? categoria : c);
+          this.categorias.update(cats => cats.map(c => c.id === categoria.id ? categoria : c));
           this.cerrarModal();
         },
         error: (err) => {
@@ -337,7 +337,7 @@ export class CategoryListComponent implements OnInit {
 
     this.service.createCategory(this.nueva).subscribe({
       next: (categoria) => {
-        this.categorias = [...this.categorias, categoria];
+        this.categorias.update(cats => [...cats, categoria]);
         this.cerrarModal();
       },
       error: (err) => {
@@ -348,7 +348,7 @@ export class CategoryListComponent implements OnInit {
   }
 
   editar(categoria: Category) {
-    this.modalAbierto = true;
+    this.modalAbierto.set(true);
     this.editando = true;
     this.categoriaEditandoId = categoria.id;
     this.nueva = { ...categoria };
@@ -362,7 +362,7 @@ export class CategoryListComponent implements OnInit {
 
     this.service.deleteCategory(id).subscribe({
       next: () => {
-        this.categorias = this.categorias.filter(c => c.id !== id);
+        this.categorias.update(cats => cats.filter(c => c.id !== id));
       },
       error: (err) => {
         console.error('Error eliminando categoría:', err);

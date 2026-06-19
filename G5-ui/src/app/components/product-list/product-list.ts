@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -289,12 +289,12 @@ import { CategoryService } from '../../services/category.service';
   template: `
 
 <!-- ══════════════════ MODAL ══════════════════ -->
-<div class="modal-overlay" *ngIf="modalAbierto" (click)="cerrarModal($event)">
+<div class="modal-overlay" *ngIf="modalAbierto()" (click)="cerrarModal($event)">
   <div class="modal-card">
 
     <div class="modal-header">
       <h3>Nuevo producto</h3>
-      <button class="modal-close" (click)="modalAbierto = false">✕</button>
+      <button class="modal-close" (click)="modalAbierto.set(false)">✕</button>
     </div>
 
     <div class="modal-body">
@@ -335,9 +335,9 @@ import { CategoryService } from '../../services/category.service';
           (input)="filtrarCategorias()"
           (focus)="mostrarDropdownCategorias = true"
           (blur)="ocultarDropdown()">
-        <div class="category-dropdown" *ngIf="mostrarDropdownCategorias && categoriasFiltradas.length > 0">
+        <div class="category-dropdown" *ngIf="mostrarDropdownCategorias && categoriasFiltradas().length > 0">
           <div class="category-option"
-            *ngFor="let cat of categoriasFiltradas"
+            *ngFor="let cat of categoriasFiltradas()"
             [class.active]="nuevoProducto.categoria.id === cat.id"
             (click)="seleccionarCategoria(cat)">
             {{cat.nombre}}
@@ -347,8 +347,8 @@ import { CategoryService } from '../../services/category.service';
     </div>
 
     <div class="modal-footer">
-      <button class="btn-ghost" (click)="modalAbierto = false" [disabled]="cargando">Cancelar</button>
-      <button class="btn-primary" (click)="guardarProducto()" [disabled]="cargando">{{cargando ? 'Cargando...' : 'Guardar producto'}}</button>
+      <button class="btn-ghost" (click)="modalAbierto.set(false)" [disabled]="cargando()">Cancelar</button>
+      <button class="btn-primary" (click)="guardarProducto()" [disabled]="cargando()">{{cargando() ? 'Cargando...' : 'Guardar producto'}}</button>
     </div>
 
   </div>
@@ -363,7 +363,7 @@ import { CategoryService } from '../../services/category.service';
   </div>
 
   <!-- Tabla -->
-  <div *ngIf="products && products.length > 0; else noProducts" class="table-wrapper">
+  <div *ngIf="products().length > 0; else noProducts" class="table-wrapper">
     <table>
       <thead>
         <tr>
@@ -377,7 +377,7 @@ import { CategoryService } from '../../services/category.service';
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let p of products">
+        <tr *ngFor="let p of products()">
           <td>
             <img *ngIf="p.imagenUrl; else noImg" [src]="p.imagenUrl" class="product-img" [alt]="p.nombre">
             <ng-template #noImg>
@@ -412,13 +412,13 @@ import { CategoryService } from '../../services/category.service';
 })
 export class ProductListComponent implements OnInit {
 
-  products: Product[] = [];
-  categorias: Category[] = [];
-  categoriasFiltradas: Category[] = [];
-  modalAbierto = false;
+  products = signal<Product[]>([]);
+  categorias = signal<Category[]>([]);
+  categoriasFiltradas = signal<Category[]>([]);
+  modalAbierto = signal(false);
   mostrarDropdownCategorias = false;
   categoriaBuscada = '';
-  cargando = false;
+  cargando = signal(false);
 
   nuevoProducto: Product = {
     codigoSku: '',
@@ -445,8 +445,8 @@ export class ProductListComponent implements OnInit {
     this.categoryService.getCategories().subscribe({
       next: (data: Category[]) => {
         console.log('Categorías recibidas:', data);
-        this.categorias = data;
-        this.categoriasFiltradas = data;
+        this.categorias.set(data);
+        this.categoriasFiltradas.set(data);
       },
       error: (err: any) => {
         console.error('Error cargando categorías:', err);
@@ -459,7 +459,7 @@ export class ProductListComponent implements OnInit {
     this.productService.getProducts().subscribe({
       next: (data: Product[]) => {
         console.log('Productos recibidos:', data);
-        this.products = data;
+        this.products.set(data);
       },
       error: (err: any) => {
         console.error('Error cargando productos:', err);
@@ -469,23 +469,23 @@ export class ProductListComponent implements OnInit {
 
   cerrarModal(event: MouseEvent): void {
     if ((event.target as HTMLElement).classList.contains('modal-overlay')) {
-      this.modalAbierto = false;
+      this.modalAbierto.set(false);
     }
   }
 
   abrirModalNuevoProducto(): void {
     this.resetearFormulario();
-    this.modalAbierto = true;
+    this.modalAbierto.set(true);
     this.filtrarCategorias();
   }
 
   filtrarCategorias(): void {
     if (this.categoriaBuscada.trim() === '') {
-      this.categoriasFiltradas = this.categorias;
+      this.categoriasFiltradas.set(this.categorias());
     } else {
-      this.categoriasFiltradas = this.categorias.filter(c =>
+      this.categoriasFiltradas.set(this.categorias().filter(c =>
         c.nombre.toLowerCase().includes(this.categoriaBuscada.toLowerCase())
-      );
+      ));
     }
   }
 
@@ -493,7 +493,7 @@ export class ProductListComponent implements OnInit {
     this.nuevoProducto.categoria = categoria;
     this.categoriaBuscada = categoria.nombre;
     this.mostrarDropdownCategorias = false;
-    this.categoriasFiltradas = [];
+    this.categoriasFiltradas.set([]);
   }
 
   ocultarDropdown(): void {
@@ -512,17 +512,17 @@ export class ProductListComponent implements OnInit {
       return;
     }
 
-    this.cargando = true;
+    this.cargando.set(true);
     this.productService.createProduct(this.nuevoProducto).subscribe({
       next: (producto: Product) => {
         console.log('Producto guardado:', producto);
-        this.products = [...this.products, producto];
-        this.modalAbierto = false;
-        this.cargando = false;
+        this.products.update(p => [...p, producto]);
+        this.modalAbierto.set(false);
+        this.cargando.set(false);
         this.resetearFormulario();
       },
       error: (err: any) => {
-        this.cargando = false;
+        this.cargando.set(false);
         console.error('Error guardando producto:', err);
         alert('Error al guardar el producto');
       }

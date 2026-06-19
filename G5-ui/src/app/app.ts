@@ -18,8 +18,6 @@ import { CategoryListComponent } from './components/product-list/category-list';
   ],
 
   styles: [`
-    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap');
-
     :host {
       display: flex;
       flex-direction: column;
