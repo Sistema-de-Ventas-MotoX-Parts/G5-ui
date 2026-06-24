@@ -1,0 +1,106 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;500&display=swap');
+
+  .reg-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; background: #0d0d0d; }
+  .reg-card { width: 100%; max-width: 400px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 16px; padding: 2.5rem 2rem; position: relative; overflow: hidden; }
+  .reg-accent-bar { position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #FACC15; }
+  .reg-corner-mark { position: absolute; bottom: -1px; right: -1px; width: 56px; height: 56px; border-top: 2px solid #FACC15; border-left: 2px solid #FACC15; border-radius: 0 0 0 8px; opacity: 0.35; }
+  .reg-logo-block { text-align: center; margin-bottom: 2rem; }
+  .reg-logo-eyebrow { font-family: 'Inter', sans-serif; font-size: 10px; letter-spacing: 0.25em; color: #6b7280; text-transform: uppercase; margin: 0 0 4px; }
+  .reg-logo-title { font-family: 'Oswald', sans-serif; font-size: 42px; font-weight: 700; color: #FACC15; letter-spacing: 0.08em; line-height: 1; margin: 0; }
+  .reg-divider-logo { display: flex; align-items: center; gap: 8px; margin: 10px auto 0; width: fit-content; }
+  .reg-divider-logo span { display: block; width: 20px; height: 1px; background: #FACC15; opacity: 0.5; }
+  .reg-rhombus { width: 6px; height: 6px; background: #FACC15; transform: rotate(45deg); opacity: 0.8; }
+  .reg-logo-sub { font-family: 'Inter', sans-serif; font-size: 12px; color: #6b7280; margin: 8px 0 0; letter-spacing: 0.04em; }
+  .reg-label { font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; color: #FACC15; text-transform: uppercase; display: block; margin-bottom: 8px; }
+  .reg-field { margin-bottom: 1.25rem; }
+  .reg-input { width: 100%; box-sizing: border-box; padding: 12px 14px; background: #111111; border: 1px solid #2d2d2d; border-radius: 8px; color: #f3f4f6; font-family: 'Inter', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; }
+  .reg-input:focus { border-color: #FACC15; }
+  .reg-input::placeholder { color: #4b5563; }
+  .reg-btn-primary { width: 100%; padding: 13px; background: #FACC15; color: #0d0d0d; font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s, transform 0.1s; margin-top: 0.5rem; }
+  .reg-btn-primary:hover { background: #fde047; }
+  .reg-btn-primary:active { transform: scale(0.99); }
+  .reg-error-box { background: #2a1010; border: 1px solid #7f1d1d; color: #f87171; font-family: 'Inter', sans-serif; font-size: 13px; padding: 10px 14px; border-radius: 8px; margin-bottom: 1.25rem; }
+  .reg-sep { display: flex; align-items: center; gap: 12px; margin: 1.5rem 0 1rem; }
+  .reg-sep-line { flex: 1; height: 1px; background: #2a2a2a; }
+  .reg-sep-text { font-family: 'Inter', sans-serif; font-size: 11px; color: #4b5563; letter-spacing: 0.08em; text-transform: uppercase; }
+  .reg-login-block { text-align: center; }
+  .reg-login-hint { font-family: 'Inter', sans-serif; font-size: 12px; color: #4b5563; margin: 0 0 6px; }
+  .reg-btn-login { background: none; border: none; cursor: pointer; font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #FACC15; padding: 0; transition: opacity 0.2s; }
+  .reg-btn-login:hover { opacity: 0.75; }
+</style>
+
+<div class="reg-wrap">
+  <div class="reg-card">
+
+    <div class="reg-accent-bar"></div>
+    <div class="reg-corner-mark"></div>
+
+    <div class="reg-logo-block">
+      <p class="reg-logo-eyebrow">Creá tu cuenta</p>
+      <h1 class="reg-logo-title">MOTOSX</h1>
+      <div class="reg-divider-logo">
+        <span></span>
+        <div class="reg-rhombus"></div>
+        <span></span>
+      </div>
+      <p class="reg-logo-sub">Registrate para comenzar</p>
+    </div>
+
+    <div *ngIf="mensajeError" class="reg-error-box">
+      ⚠️ {{ mensajeError }}
+    </div>
+
+    <div class="reg-field">
+      <label class="reg-label">Nombre</label>
+      <input
+        [(ngModel)]="nombre"
+        name="nombre"
+        type="text"
+        placeholder="Tu nombre"
+        class="reg-input">
+    </div>
+
+    <div class="reg-field">
+      <label class="reg-label">Email</label>
+      <input
+        [(ngModel)]="email"
+        name="email"
+        type="email"
+        placeholder="ejemplo@email.com"
+        class="reg-input">
+    </div>
+
+    <div class="reg-field">
+      <label class="reg-label">Contraseña</label>
+      <input
+        [(ngModel)]="contrasenia"
+        name="contrasenia"
+        type="password"
+        placeholder="••••••••"
+        class="reg-input">
+    </div>
+
+    <button
+      (click)="registrar()"
+      class="reg-btn-primary">
+      Registrarse
+    </button>
+    
+    <div class="reg-sep">
+      <div class="reg-sep-line"></div>
+      <span class="reg-sep-text">o</span>
+      <div class="reg-sep-line"></div>
+    </div>
+
+    <div class="reg-login-block">
+      <p class="reg-login-hint">¿Ya tienes una cuenta?</p>
+      <button (click)="irALogin.emit()" class="reg-btn-login">
+        Inicia sesión
+      </button>
+    </div>
+
+  </div>
+  
+
+</div>
